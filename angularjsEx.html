@@ -1,0 +1,152 @@
+<!DOCTYPE html >
+<html >
+<head>
+  
+<script src="//code.jquery.com/jquery.min.js"></script>
+  
+  
+<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet" type="text/css" />
+<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+  
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular-sanitize.js"></script>
+  
+<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular-resource.js"></script>
+  
+  
+<link href="angularjsEx.css" rel="stylesheet" type="text/css" />
+<script src="angularjsEx.js"></script>
+  <meta charset="utf-8">
+  <title>JS Bin</title>
+</head>
+<body ng-app="chtApp" ng-controller='MainCtrl' 
+      >
+<div class="container">
+  <span ng-bind-template="{{myname}}"></span> <br>
+  <script type="text/ng-template" id="/temp.html">
+  商品名稱: <input type="text" ng-model="PName"><br>
+  商品價格: <input type="number" ng-model="PPrice"><br>
+  購買數量: <input type="number" ng-model="PQty"><br>
+  </script>
+  <br>
+  <div cart-item></div>
+  <br>
+  您購買商品品名 <span ng-bind="PName"></span> <br>
+  商品單價<span ng-bind="(PPrice||0)|number:2"></span> 元 <br>
+  商品數量<span ng-bind="PQty||0"></span> 個 <br>
+  金額共為 <span ng-bind-template="NT${{total(PPrice,PQty)||0 |number}}"></span>
+  <br>
+  <button ng-click='addCarts(PName,PPrice,PQty)'
+          class="btn btn-xs btn-info">加入購物車</button>
+  <button ng-click='saveCarts();'
+          class="btn btn-xs btn-info">儲存購物車</button><br>
+  <button ng-click='carts=[];'
+          class="btn btn-xs btn-danger">清空購物車</button>
+  <button ng-click='undo();'
+          class="btn btn-xs btn-danger">復原變更</button>
+  目前還有  
+  <span ng-bind-template="{{carts_history.length}}"></span>
+  個動作可以復原<br>
+  <label><input type="checkbox" ng-model="isDebug">DEBUG</input></label>
+  <pre ng-show="isDebug" ng-cloak class="ng-cloak">{{carts_history|json}}</pre>
+  <br>
+  搜尋 <input type="text" ng-model="keyword"/>
+  <br>
+  <h2>購物車</h2>
+  <div class="table-responsive">
+  <table class="table table-striped">
+    <tr>
+      <th width="3%">
+        <input type="checkbox" ng-model="checkAll" ng-change="selectAll()"></input>
+      </th>
+      <th>功能</th>
+      <th>#</th>
+      <th>名稱</th>
+      <th>
+        <a href="" ng-click="sort='PPrice'">升</a>價格
+        <a href="" ng-click="sort='-PPrice'">降</a></th>
+      <th>數量</th>
+      <th>小計</th>
+    </tr>
+    <tr ng-repeat="item in carts|orderBy:sort|filter:keyword"
+        ng-class="{highlight:isHighlight}"
+        ng-mouseover="isHighlight=true"
+        ng-mouseleave="isHighlight=false"
+        
+        >
+      <td>
+        <input type="checkbox" ng-model="item.isDelete"></input>
+      </td>
+      <td>
+        <button ng-click='removeCarts(item)'
+                ng-disabled="item.isEdit"
+                class="btn btn-xs btn-danger">X
+        </button>
+        <button ng-click='edit(item)'
+                ng-hide="item.isEdit"
+                class="btn btn-xs btn-info">編輯</button>
+        <button ng-click='editDone(item)'
+                ng-show="item.isEdit"
+                class="btn btn-xs btn-success">完成</button>        
+        </td>
+      <td>{{$index}}</td>
+      <td>{{item.PName}}</td>
+      <td>{{item.PPrice}}</td>
+      <td>
+        
+        <button ng-click='subPQty(item)'
+                ng-show="item.isEdit">-</button>
+          {{item.PQty}}
+        <button ng-click='addPQty(item)'
+                ng-show="item.isEdit">+</button>
+      </td>
+      <td><font ng-class="{fontBold:total(item.PPrice,item.PQty)>1000}">NT ${{ total(item.PPrice,item.PQty)||0 |number}}</font></td>
+    </tr>
+    <tfooter>
+      <td colspan="2">
+  <button ng-click='deleteSelected()'
+          class="btn btn-xs btn-danger">批次刪除</button></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>總計</td>
+      <td>NT$ {{sum()||0|number}}</td>
+    </tfooter>
+  </table>
+  </div>
+  <br>
+
+假圖<br>
+  寬: <input type="number" ng-model="width"/>
+  高: <input type="number" ng-model="height"/><br>
+<img ng-src="http://lorempixel.com/{{width}}/{{height}}/sports/"></img>
+<br>
+
+柯P野生官網-分類
+  <label><input type="checkbox" ng-model="showKpcategory">Kp category</input></label>
+  <pre ng-show="showKpcategory" ng-cloak class="ng-cloak">{{kpcategory|json}}</pre>
+
+<ul ng-repeat="item in kpcategory" class="list-group">
+  <li class="list-group-item">{{item.name}}
+    <a href="" ng-click="loadList(item.id)">({{item.id}})</a>
+  </li>
+</ul>
+
+分類內容清單
+<ul ng-repeat="item in list" class="list-group">
+  <li class="list-group-item">{{item.title}}
+    <a ng-href="{{item.url}}">({{item.id}})</a>
+  </li>
+</ul>
+
+<br>
+
+linkytest<br>
+<textarea ng-model="linkytest"></textarea>
+<div ng-bind-html="linkytest| linky"></div>
+    
+
+
+</div>
+</body>
+</html>
